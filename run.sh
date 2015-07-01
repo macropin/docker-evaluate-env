@@ -1,16 +1,21 @@
 #!/usr/bin/env sh
 
-INPUT=/input/
-OUTPUT=/output
+INPUT_DIR=${1-/input/}
+OUTPUT_FILE=${2-/output}
 
-echo ">> Expanding Environment Variables from ${INPUT}"
+echo ">> Expanding Environment Variables from ${INPUT_DIR}"
 
-for ENV_FILE in `ls ${INPUT}`; do
+# Sourcing
+for ENV_FILE in `ls ${INPUT_DIR}`; do
     echo "Sourcing $ENV_FILE"
-    source ${INPUT}/$ENV_FILE
-    for e in `cat ${INPUT}/${ENV_FILE}`; do
-        echo `eval "echo $e"` >> /tmp/env.out
-    done
+    source ${INPUT_DIR}/$ENV_FILE
 done
 
-cat /tmp/env.out | sort -u > ${OUTPUT}
+# Evaluating
+IFS=$'\n'
+for e in `cat ${INPUT_DIR}/*`; do
+    echo "Evaluating: $e"
+    echo $(eval echo "${e}") >> /tmp/env.out
+done
+
+cat /tmp/env.out | sort -u > ${OUTPUT_FILE}
